@@ -41,3 +41,15 @@ jobs:
 
       - name: Check backend syntax
         run: node --check server/server.js
+
+  deploy:
+    name: Deploy ResourceHub to Render
+    runs-on: ubuntu-latest
+    needs: build-and-check
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Trigger Render deployment
+        env:
+          RENDER_DEPLOY_HOOK: ${{ secrets.RESOURCEHUB_RENDER_DEPLOY_HOOK }}
+        run: curl -fsS -X POST "$RENDER_DEPLOY_HOOK"
