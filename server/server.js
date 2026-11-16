@@ -17,10 +17,19 @@ if (process.env.NODE_ENV === 'production' && !process.env.JWT_SECRET) {
   throw new Error('JWT_SECRET must be configured in production.');
 }
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: process.env.DATABASE_SSL === 'false' ? false : { rejectUnauthorized: false }
-});
+const pool = process.env.NODE_ENV === 'test'
+  ? {
+      query: async () => {
+        throw new Error('Test database mock has not been configured.');
+      },
+      connect: async () => {
+        throw new Error('Test database mock has not been configured.');
+      }
+    }
+  : new Pool({
+      connectionString: process.env.DATABASE_URL,
+      ssl: process.env.DATABASE_SSL === 'false' ? false : { rejectUnauthorized: false }
+    });
 
 const ADMIN_NAME = 'Joseph Alex';
 const ADMIN_EMAIL = 'admin@resourcehub.com';
@@ -82,7 +91,9 @@ async function initDatabase() {
 }
 
 // API requests wait until schema and administrator setup are complete.
-const dbReady = initDatabase();
+const dbReady = process.env.NODE_ENV === 'test'
+  ? Promise.resolve()
+  : initDatabase();
 app.use('/api', async (req, res, next) => {
   try {
     await dbReady;
@@ -310,4 +321,8 @@ app.get('/{*splat}', (req, res) => {
   res.sendFile(path.join(__dirname, '../client/dist/index.html'));
 });
 
-app.listen(PORT, () => console.log(`ResourceHub server running on port ${PORT}`));
+if (require.main === module) {
+  app.listen(PORT, () => console.log(`ResourceHub server running on port ${PORT}`));
+}
+
+module.exports = { app, pool };

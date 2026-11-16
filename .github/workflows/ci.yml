@@ -1,4 +1,3 @@
-
 name: ResourceHub CI
 
 on:
@@ -41,6 +40,9 @@ jobs:
 
       - name: Check backend syntax
         run: node --check server/server.js
+
+      - name: Run backend API tests
+        run: npm test --prefix server
 
   deploy:
     name: Deploy ResourceHub to Render
