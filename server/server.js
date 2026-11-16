@@ -213,7 +213,7 @@ app.post('/api/resources', authenticateToken, requireAdmin, async (req, res) => 
   const name = String(req.body.name || '').trim();
   const category = String(req.body.category || '');
   const location = String(req.body.location || '').trim();
-  const capacity_or_qty = Number(req.body.capacity_or_qty || 1);
+  const capacity_or_qty = Number(req.body.capacity_or_qty ?? 1);
 
   if (!name || !['Facility', 'Equipment'].includes(category) || !location ||
       !Number.isInteger(capacity_or_qty) || capacity_or_qty < 1) {
