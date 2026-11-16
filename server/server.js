@@ -56,15 +56,14 @@ async function initDatabase() {
     );
   `);
 
-  // Ensure the configured administrator exists and always has a hashed password.
+  // Create the administrator only if the account does not already exist.
+  // Preserve the existing administrator password on server restarts.
   const adminHash = await bcrypt.hash(ADMIN_INITIAL_PASSWORD, 12);
+
   await pool.query(
     `INSERT INTO users (full_name, email, password, role)
      VALUES ($1, $2, $3, 'admin')
-     ON CONFLICT (email) DO UPDATE
-     SET full_name = EXCLUDED.full_name,
-         password = EXCLUDED.password,
-         role = 'admin'`,
+     ON CONFLICT (email) DO NOTHING`,
     [ADMIN_NAME, ADMIN_EMAIL, adminHash]
   );
 
